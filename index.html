@@ -189,19 +189,17 @@
   .cat-tab.active-flower,
   .cat-tab.active-fruit { background: var(--black); color: var(--white); }
   .add-btn {
-    position: fixed; bottom: 32px; right: 40px;
-    z-index: 50;
     background: var(--green-dark); color: var(--green);
     border: none; border-radius: 0;
-    padding: 12px 24px;
+    padding: 7px 20px;
     font-family: var(--font-mono);
-    font-size: 13px; font-weight: 700;
+    font-size: 12px; font-weight: 700;
     cursor: pointer; white-space: nowrap;
     letter-spacing: 1px; text-transform: uppercase;
-    transition: all .15s;
+    transition: all .15s; flex-shrink: 0;
+    align-self: stretch;
   }
   .add-btn:hover { background: var(--black); color: var(--green); }
-
   /* ── LIST ── */
   .list { max-width: 1440px; margin: 0 auto; padding: 0 40px 120px; }
   .section { border-bottom: var(--border-light); }
@@ -469,7 +467,7 @@
     .stat-n { font-size: 40px; }
     .stat { padding: 20px 16px; }
     .cards { grid-template-columns: repeat(2, 1fr); }
-    .add-btn { right: 16px; bottom: 24px; }
+    .add-btn { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); right: auto; z-index: 50; padding: 12px 20px; font-size: 13px; }
     .drive-bar { flex-direction: row; align-items: center; }
     .drive-hint { display: none !important; }
     /* 2. 標籤按鈕水平均分，與搜尋框同寬 */
@@ -534,12 +532,12 @@
       <button class="cat-tab" data-cat="花點" onclick="setCat(this)">🌸 花點</button>
       <button class="cat-tab" data-cat="隱藏水果片" onclick="setCat(this)">🍎 水果片</button>
     </div>
+    <button class="add-btn" id="add-btn-desktop" onclick="openAdd()">+ 新增收藏</button>
   </div>
 </div>
 
 <div class="list" id="list"></div>
 
-<button class="add-btn" onclick="openAdd()">+ 新增收藏</button>
 
 <!-- Bottom Sheet -->
 <div class="sheet-overlay" id="sheet-overlay" onclick="overlayClick(event)">
