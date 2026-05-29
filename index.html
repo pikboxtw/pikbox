@@ -428,6 +428,36 @@
     color: var(--gray-400); letter-spacing: 2px;
     text-transform: uppercase;
   }
+  .drive-loading {
+    display: none;
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  .drive-loading.show { display: flex; }
+  .drive-loading-text {
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--gray-400);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .drive-loading-bar {
+    width: 120px; height: 1px; background: var(--gray-200); position: relative; overflow: hidden;
+  }
+  .drive-loading-bar::after {
+    content: '';
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--green-dark);
+    animation: loadingSlide 1.2s ease-in-out infinite;
+  }
+  @keyframes loadingSlide {
+    0% { left: -100%; }
+    50% { left: 0%; }
+    100% { left: 100%; }
+  }
 
   /* ── CONFIRM ── */
   #confirm-overlay { align-items: center; justify-content: center; }
@@ -605,6 +635,11 @@
   <img id="img-viewer-src" src="" alt="放大圖" style="max-width:92vw;max-height:88dvh;object-fit:contain;pointer-events:none;">
 </div>
 
+<!-- Drive Loading Overlay -->
+<div class="drive-loading" id="drive-loading">
+  <div class="drive-loading-text" id="drive-loading-text">連線 Google Drive 中</div>
+  <div class="drive-loading-bar"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -898,6 +933,17 @@ function copyCoord(c) {
   showToast('Copied ✓');
 }
 
+function showDriveLoading(text) {
+  const el = document.getElementById('drive-loading');
+  const txt = document.getElementById('drive-loading-text');
+  if (el) el.classList.add('show');
+  if (txt) txt.textContent = text;
+}
+function hideDriveLoading() {
+  const el = document.getElementById('drive-loading');
+  if (el) el.classList.remove('show');
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.display = 'block';
@@ -1079,13 +1125,14 @@ async function saveDataJson(data) {
 }
 
 async function driveLoad() {
+  showDriveLoading('連線 Google Drive 中');
   try {
     driveDataFileId = await findDataFile();
-    if (!driveDataFileId) { showToast('No Drive data — starting fresh'); return; }
+    if (!driveDataFileId) { hideDriveLoading(); showToast('No Drive data — starting fresh'); return; }
     const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveDataFileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
     const data = await res.json();
     if (Array.isArray(data)) {
-      items = data.map(it => ({ ...it, img: null })); render(); showToast('Loading images...');
+      items = data.map(it => ({ ...it, img: null })); render(); showDriveLoading('載入圖片中');
       for (let i = 0; i < data.length; i++) {
         const it = data[i];
         if (it.driveImgId) {
@@ -1097,9 +1144,9 @@ async function driveLoad() {
           } catch(e) {}
         }
       }
-      dirtyIds.clear(); showToast(`Loaded ${items.length} items ✓`); setDriveUI('connected');
+      dirtyIds.clear(); hideDriveLoading(); showToast(`已載入 ${items.length} 筆資料 ✓`); setDriveUI('connected');
     }
-  } catch(e) { showToast('Load failed: ' + e.message); setDriveUI('connected'); }
+  } catch(e) { hideDriveLoading(); showToast('載入失敗：' + e.message); setDriveUI('connected'); }
 }
 
 async function driveSync() {
