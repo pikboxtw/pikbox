@@ -703,7 +703,11 @@ function parseCoord(s) {
 }
 function onCoordInput() {
   clearTimeout(geoTimer);
-  if (parseCoord(document.getElementById('f-coord').value)) geoTimer = setTimeout(geoLookup, 900);
+  const input = document.getElementById('f-coord');
+  // 自動移除括號與多餘空白
+  const cleaned = input.value.replace(/[()]/g, '').replace(/\s+/g, '').replace(',', ', ');
+  if (cleaned !== input.value) input.value = cleaned;
+  if (parseCoord(input.value)) geoTimer = setTimeout(geoLookup, 900);
 }
 async function geoLookup() {
   const v = document.getElementById('f-coord').value;
