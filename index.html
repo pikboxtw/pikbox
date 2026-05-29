@@ -1009,7 +1009,7 @@ function driveLogin() {
 function driveSignout() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken);
   accessToken = null; rootFolderId = null; catFolderIds = {}; driveDataFileId = null;
-  localStorage.removeItem('pikbloom_access_token'); localStorage.removeItem('pikbloom_token_exp');
+  localStorage.removeItem('pikbloom_access_token'); localStorage.removeItem('pikbloom_token_exp'); localStorage.removeItem('pikbloom_folder_cache');
   try { items = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { items = []; }
   render(); setDriveUI('disconnected'); showToast('Disconnected');
 }
@@ -1069,8 +1069,29 @@ async function getOrCreateFolder(name, parentId) {
 }
 
 async function ensureFolders() {
+  // 先從 cache 讀取
+  const cached = localStorage.getItem('pikbloom_folder_cache');
+  if (cached) {
+    try {
+      const c = JSON.parse(cached);
+      rootFolderId = c.rootFolderId;
+      catFolderIds = c.catFolderIds;
+      driveDataFileId = c.driveDataFileId || null;
+      return; // 直接用 cache，跳過 API 查詢
+    } catch(e) {}
+  }
+  // cache 不存在，重新查詢
   rootFolderId = await getOrCreateFolder(ROOT_FOLDER_NAME, null);
   for (const cat of Object.keys(CAT_FOLDERS)) catFolderIds[cat] = await getOrCreateFolder(cat, rootFolderId);
+  saveFolderCache();
+}
+
+function saveFolderCache() {
+  try {
+    localStorage.setItem('pikbloom_folder_cache', JSON.stringify({
+      rootFolderId, catFolderIds, driveDataFileId
+    }));
+  } catch(e) {}
 }
 
 async function uploadImage(base64, itemId, cat) {
@@ -1101,9 +1122,12 @@ async function uploadImage(base64, itemId, cat) {
 
 async function findDataFile() {
   if (!rootFolderId) return null;
+  if (driveDataFileId) return driveDataFileId; // 用 cache
   const q = `name='${DATA_FILE_NAME}' and '${rootFolderId}' in parents and trashed=false`;
   const res = await gapi('GET', `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
-  return res.files && res.files.length > 0 ? res.files[0].id : null;
+  const id = res.files && res.files.length > 0 ? res.files[0].id : null;
+  if (id) { driveDataFileId = id; saveFolderCache(); }
+  return id;
 }
 
 async function saveDataJson(data) {
@@ -1121,6 +1145,7 @@ async function saveDataJson(data) {
       method: 'POST', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': `multipart/related; boundary=${boundary}` }, body: bodyStr
     });
     const f = await res.json(); driveDataFileId = f.id;
+    saveFolderCache();
   }
 }
 
