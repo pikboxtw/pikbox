@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<title>PikBox</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --green: #4FCC4D;
+    --green-dark: #142F13;
+    --gray-100: #f5f5f5;
+    --gray-200: #e8e8e8;
+    --gray-400: #a0a0a0;
+    --gray-600: #6b6b6b;
+    --border: 1px solid var(--black);
+    --border-light: 1px solid var(--gray-200);
+    --font-sans: 'Space Grotesk', -apple-system, sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--white);
+    color: var(--black);
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: var(--border);
+    padding: 0 40px;
+    height: 56px;
+    display: flex; align-items: center;
+  }
+  .topbar-inner {
+    width: 100%; max-width: 1440px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative;
+  }
+  .app-title {
+    font-family: var(--font-mono);
+    font-size: 18px; font-weight: 700;
+    color: var(--green-dark);
+    letter-spacing: -0.5px;
+  }
+  .app-title span {
+    color: var(--green);
+  }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn-topbar {
+    background: transparent; color: var(--black);
+    border: var(--border); border-radius: 0;
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+    font-family: var(--font-mono);
+    cursor: pointer; white-space: nowrap;
+    transition: all .15s;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .btn-topbar:hover { background: var(--black); color: var(--white); }
+
+  /* ── HERO STATS ── */
+  .hero {
+    max-width: 1440px; margin: 0 auto;
+    padding: 24px 40px 0;
+  }
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--gray-400);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-label::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: var(--border);
+    border-bottom: var(--border);
+  }
+  .stat {
+    padding: 28px 32px;
+    border-right: var(--border);
+    position: relative;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-n {
+    font-family: var(--font-mono);
+    font-size: 64px; font-weight: 700; line-height: 1;
+    color: var(--black); letter-spacing: -3px;
+    display: block; margin-bottom: 8px;
+  }
+  .stat-n-accent { color: var(--green); }
+  .stat-l {
+    font-size: 13px; color: var(--gray-600);
+    font-weight: 400; letter-spacing: 0.3px;
+  }
+
+
+  /* ── DRIVE BAR ── */
+  .drive-bar {
+    max-width: 1440px; margin: 0 auto;
+    padding: 12px 40px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    border-bottom: var(--border-light);
+  }
+  .drive-bar-left { display: flex; flex-direction: column; gap: 6px; }
+  .drive-hint {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--gray-400);
+    line-height: 1.6; letter-spacing: 0.3px;
+    max-width: 600px;
+  }
+  .drive-status {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--gray-400);
+    display: flex; align-items: center; gap: 6px;
+    letter-spacing: 0.5px;
+  }
+  .btn-sync, .btn-google {
+    background: transparent; color: var(--black);
+    border: var(--border); border-radius: 0;
+    padding: 4px 12px; font-size: 11px;
+    font-family: var(--font-mono);
+    cursor: pointer; white-space: nowrap;
+    transition: all .15s; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-sync:hover, .btn-google:hover { background: var(--black); color: var(--white); }
+  .btn-google img { display: none; }
+  .btn-signout { display: none !important; }
+
+  /* ── CONTROLS ── */
+  .controls {
+    max-width: 1440px; margin: 0 auto;
+    padding: 16px 40px;
+    display: flex; flex-direction: column; gap: 12px;
+    border-bottom: var(--border);
+  }
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 100%; padding: 12px 16px;
+    border: var(--border); border-radius: 0;
+    background: var(--white);
+    font-family: var(--font-mono);
+    font-size: 13px; color: var(--black);
+    outline: none; transition: background .15s;
+    letter-spacing: 0.3px;
+  }
+  .search-input:focus { background: var(--gray-100); }
+  .search-input::placeholder { color: var(--gray-400); }
+  .controls-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .cat-tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex-shrink: 0; padding: 7px 18px;
+    font-size: 12px; font-weight: 500;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    border: var(--border); border-right: none;
+    background: var(--white); color: var(--gray-600);
+    white-space: nowrap; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  .cat-tab:last-of-type { border-right: var(--border); }
+  .cat-tab:hover { background: var(--gray-100); }
+  .cat-tab.active-all,
+  .cat-tab.active-mush,
+  .cat-tab.active-flower,
+  .cat-tab.active-fruit { background: var(--black); color: var(--white); }
+  .add-btn {
+    position: fixed; bottom: 32px; right: 40px;
+    z-index: 50;
+    background: var(--green-dark); color: var(--green);
+    border: none; border-radius: 0;
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 1px; text-transform: uppercase;
+    transition: all .15s;
+  }
+  .add-btn:hover { background: var(--black); color: var(--green); }
+
+  /* ── LIST ── */
+  .list { max-width: 1440px; margin: 0 auto; padding: 0 40px 120px; }
+  .section { border-bottom: var(--border-light); }
+  .section-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0; cursor: pointer;
+    border-bottom: var(--border-light);
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--black);
+  }
+  .section-count {
+    font-weight: 400; color: var(--gray-400);
+  }
+  .section-hdr-mush .section-title::before { content: '🍄'; }
+  .section-hdr-flower .section-title::before { content: '🌸'; }
+  .section-hdr-fruit .section-title::before { content: '🍎'; }
+  .chevron { font-size: 11px; font-family: var(--font-mono); color: var(--gray-400); }
+  .chevron.collapsed::before { content: '+'; }
+  .chevron:not(.collapsed)::before { content: '－'; }
+
+  .country-group { padding: 20px 0; border-bottom: var(--border-light); overflow: hidden; }
+  .country-group:last-child { border-bottom: none; }
+  .country-lbl {
+    font-family: var(--font-mono);
+    font-size: 14px; color: var(--gray-400);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--white); }
+  .card {
+    background: var(--white);
+    overflow: hidden;
+    transition: background .15s;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .card:hover { background: var(--gray-100); }
+  .card-img {
+    width: 100%; aspect-ratio: 4/3;
+    background: var(--gray-100);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; overflow: hidden;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-body { padding: 10px 12px 8px; border-top: var(--border-light); }
+  .card-coord {
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--gray-400);
+    display: flex; align-items: center; gap: 3px;
+    cursor: pointer; word-break: break-all; line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: 0.3px;
+  }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border: none; padding: 0;
+    color: var(--gray-400); letter-spacing: 0.5px;
+  }
+  .card-actions {
+    display: flex; justify-content: flex-end; gap: 0;
+    border-top: var(--border-light);
+  }
+  .icon-btn {
+    background: none; border: none;
+    border-left: var(--border-light);
+    cursor: pointer; color: var(--gray-400);
+    padding: 6px 10px; font-size: 13px;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .icon-btn:first-child { border-left: none; }
+  .icon-btn:hover { background: var(--black); color: var(--white); }
+
+  .empty-state {
+    text-align: center; padding: 80px 0;
+    font-family: var(--font-mono);
+    color: var(--gray-400); font-size: 13px;
+    letter-spacing: 1px; text-transform: uppercase;
+    border-top: var(--border-light);
+  }
+
+  /* ── MODAL ── */
+  .sheet-overlay {
+    display: none; position: fixed; inset: 0; z-index: 80;
+    background: rgba(0,0,0,0.6);
+    align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .sheet-overlay.open { display: flex; animation: fadeIn .2s; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .sheet {
+    background: var(--white);
+    border: var(--border);
+    padding: 32px;
+    width: 100%; max-width: 520px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: scaleIn .2s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes scaleIn { from { opacity:0; transform: scale(.96); } to { opacity:1; transform: scale(1); } }
+  .sheet-handle { display: none; }
+  .sheet h3 {
+    font-family: var(--font-mono);
+    font-size: 16px; font-weight: 700;
+    margin-bottom: 24px; letter-spacing: -0.3px;
+    text-transform: uppercase;
+    padding-bottom: 16px; border-bottom: var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sheet-close {
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 16px;
+    color: var(--gray-400); padding: 0;
+    transition: color .15s;
+  }
+  .sheet-close:hover { color: var(--black); }
+  .fg { margin-bottom: 16px; }
+  .fg label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700; color: var(--gray-400);
+    display: block; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .fg input {
+    width: 100%; border: var(--border); border-radius: 0;
+    padding: 10px 14px; font-size: 14px;
+    font-family: var(--font-sans);
+    color: var(--black); background: var(--white);
+    outline: none; transition: background .15s;
+    -webkit-appearance: none;
+  }
+  .fg input:focus { background: var(--gray-100); }
+
+  .cat-picker { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; width: 100%; }
+  .cat-chip {
+    padding: 8px 16px; border: var(--border); border-right: none;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    background: var(--white); color: var(--gray-600);
+    transition: all .12s; user-select: none;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    text-align: center;
+  }
+  .cat-chip:last-child { border-right: var(--border); }
+  .cat-chip .chip-check { display: none; }
+  .cat-chip.selected-mush,
+  .cat-chip.selected-flower,
+  .cat-chip.selected-fruit {
+    background: var(--black); color: var(--white); font-weight: 700;
+  }
+  .cat-chip.selected-mush .chip-check,
+  .cat-chip.selected-flower .chip-check,
+  .cat-chip.selected-fruit .chip-check { display: inline; }
+
+  .geo-pill { display: none; margin-top: 6px; font-size: 11px; font-family: var(--font-mono); padding: 4px 0; }
+  .geo-ok { color: var(--green-dark); }
+  .geo-err { color: #c0392b; }
+  .geo-loading { color: var(--gray-400); }
+
+  .upload-zone {
+    border: 1px dashed var(--gray-400); padding: 28px;
+    text-align: center; cursor: pointer;
+    color: var(--gray-400); font-size: 12px;
+    font-family: var(--font-mono);
+    transition: background .15s; letter-spacing: 0.5px;
+  }
+  .upload-zone:hover { background: var(--gray-100); }
+  .preview-img { display: none; width: 100%; margin-top: 8px; max-height: 200px; object-fit: cover; border: var(--border); }
+  .change-img-btn {
+    display: none; width: 100%; margin-top: 8px; padding: 8px;
+    font-size: 11px; font-family: var(--font-mono);
+    color: var(--gray-400); background: var(--white);
+    border: var(--border); cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .sheet-footer { display: flex; gap: 0; margin-top: 24px; border-top: var(--border); padding-top: 20px; }
+  .btn-cancel {
+    flex: 1; background: var(--white); border: var(--border); border-right: none;
+    padding: 12px 20px; font-size: 13px; font-weight: 600;
+    font-family: var(--font-mono);
+    cursor: pointer; color: var(--black);
+    text-align: center; text-transform: uppercase;
+    letter-spacing: 0.5px; transition: all .15s;
+  }
+  .btn-cancel:hover { background: var(--gray-100); }
+  .btn-save {
+    flex: 2; background: var(--green-dark); color: var(--green);
+    border: var(--border); padding: 12px 24px;
+    font-size: 13px; font-weight: 700;
+    font-family: var(--font-mono);
+    cursor: pointer; text-align: center;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    transition: all .15s;
+  }
+  .btn-save:hover { background: var(--black); }
+
+  /* ── TOAST ── */
+  .toast {
+    display: none; position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--black); color: var(--white);
+    padding: 10px 20px; font-size: 12px; font-weight: 500;
+    font-family: var(--font-mono);
+    z-index: 200; white-space: nowrap;
+    letter-spacing: 0.5px; border: var(--border);
+  }
+  .loading {
+    position: fixed; inset: 0; background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--gray-400); letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── CONFIRM ── */
+  #confirm-overlay { align-items: center; justify-content: center; }
+  #confirm-overlay > div {
+    background: var(--white); border: var(--border);
+    padding: 28px; width: 100%; max-width: 360px;
+  }
+  #confirm-msg {
+    font-family: var(--font-mono);
+    font-size: 14px; margin-bottom: 24px;
+    line-height: 1.6; color: var(--black);
+  }
+  #confirm-cancel {
+    flex: 1; padding: 10px; border: var(--border); border-right: none;
+    background: var(--white); color: var(--black);
+    font-family: var(--font-mono); font-size: 12px;
+    font-weight: 600; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    -webkit-appearance: none; transition: background .15s;
+  }
+  #confirm-cancel:hover { background: var(--gray-100); }
+  #confirm-ok {
+    flex: 1; padding: 10px; border: var(--border);
+    background: var(--black); color: var(--white);
+    font-family: var(--font-mono); font-size: 12px;
+    font-weight: 600; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    transition: opacity .15s;
+  }
+  #confirm-ok:hover { opacity: .8; }
+
+  /* ── IMG VIEWER ── */
+  #img-viewer { border: none; }
+
+  @media (max-width: 900px) {
+    .topbar { padding: 0 16px; }
+    .hero, .drive-bar, .controls, .list { padding-left: 16px; padding-right: 16px; }
+    .stat-n { font-size: 40px; }
+    .stat { padding: 20px 16px; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .add-btn { right: 16px; bottom: 24px; }
+    .drive-bar { flex-direction: row; align-items: center; }
+    .drive-hint { display: none !important; }
+    /* 2. 標籤按鈕水平均分，與搜尋框同寬 */
+    .controls-bottom { width: 100%; }
+    .cat-tabs { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; }
+    .cat-tab { border-right: none; text-align: center; justify-content: center; }
+    .cat-tab:last-of-type { border-right: var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">Loading...</div>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="app-title">Pik<span>Box</span></div>
+    <div class="topbar-right">
+      <button class="btn-topbar" id="btn-topbar-login" onclick="driveLogin()" style="display:none">Connect Drive</button>
+      <button class="btn-topbar" id="btn-topbar-signout" onclick="driveSignout()" style="display:none">Disconnect</button>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="stats">
+    <div class="stat stat-mush">
+      <span class="stat-n" id="s-mush">0</span>
+      <div class="stat-l">🍄 菇點</div>
+    </div>
+    <div class="stat stat-flower">
+      <span class="stat-n" id="s-flower">0</span>
+      <div class="stat-l">🌸 花點</div>
+    </div>
+    <div class="stat stat-fruit">
+      <span class="stat-n" id="s-fruit">0</span>
+      <div class="stat-l">🍎 水果片</div>
+    </div>
+  </div>
+</div>
+
+<div class="drive-bar" id="drive-bar">
+  <div class="drive-bar-left">
+    <div class="drive-status">
+      <span id="drive-status-icon">○</span>
+      <span id="drive-status-text">未連線 Google Drive</span>
+    </div>
+    <div class="drive-hint" id="drive-hint-disconnected">登入 Google Drive 儲存同步你的收藏！</div>
+    <div class="drive-hint" id="drive-hint" style="display:none">新增資訊後請點擊同步更新，上傳的圖片就會一起同步到你的 Google Drive PikBox 資料夾囉！<br>如未點擊同步更新，頁面重整後資料將無法永久儲存。</div>
+  </div>
+  <button class="btn-sync" id="btn-sync" style="display:none" onclick="manualSync()">同步更新</button>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <input class="search-input" id="search" placeholder="🔍  搜尋座標、關鍵字、國家..." oninput="render()" />
+  </div>
+  <div class="controls-bottom">
+    <div class="cat-tabs">
+      <button class="cat-tab active-all" data-cat="全部" onclick="setCat(this)">ALL</button>
+      <button class="cat-tab" data-cat="菇點" onclick="setCat(this)">🍄 菇點</button>
+      <button class="cat-tab" data-cat="花點" onclick="setCat(this)">🌸 花點</button>
+      <button class="cat-tab" data-cat="隱藏水果片" onclick="setCat(this)">🍎 水果片</button>
+    </div>
+  </div>
+</div>
+
+<div class="list" id="list"></div>
+
+<button class="add-btn" onclick="openAdd()">+ 新增收藏</button>
+
+<!-- Bottom Sheet -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="overlayClick(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <h3 id="sheet-title">新增收藏 <button class="sheet-close" onclick="closeSheet()">✕</button></h3>
+
+    <div class="fg">
+      <label>大分類</label>
+      <div class="cat-picker">
+        <div class="cat-chip selected-mush" data-val="菇點" onclick="selectCat(this)"><span class="chip-check">✓ </span>🍄 菇點</div>
+        <div class="cat-chip" data-val="花點" onclick="selectCat(this)"><span class="chip-check">✓ </span>🌸 花點</div>
+        <div class="cat-chip" data-val="隱藏水果片" onclick="selectCat(this)"><span class="chip-check">✓ </span>🍎 水果片</div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>座標 — 輸入後自動辨識國家地區</label>
+      <input id="f-coord" placeholder="25.047924, 121.512561" inputmode="decimal" oninput="onCoordInput()" />
+      <div class="geo-pill" id="geo-pill"></div>
+    </div>
+
+    <div class="fg">
+      <label>國家 / 地區（自動填入，可修改）</label>
+      <input id="f-country" placeholder="自動辨識中…" />
+    </div>
+
+    <div class="fg">
+      <label>圖片</label>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-in').click()">
+        <div style="font-size:20px;margin-bottom:6px">🖼</div>
+        點擊從相簿選取圖片
+      </div>
+      <input type="file" id="file-in" accept="image/*" style="display:none" onchange="handleImg(event)">
+      <img id="preview" class="preview-img" alt="預覽">
+      <button class="change-img-btn" id="change-img-btn" onclick="document.getElementById('file-in').click()">更換圖片</button>
+    </div>
+
+    <div class="fg">
+      <label>#關鍵字（空格分隔，不用加 #）</label>
+      <input id="f-tags" placeholder="例：怪片 美片 雪 動漫" />
+    </div>
+
+    <div class="sheet-footer">
+      <button class="btn-cancel" onclick="closeSheet()">取消</button>
+      <button class="btn-save" onclick="saveItem()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 刪除確認 -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;z-index:160;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:24px;">
+  <div>
+    <div id="confirm-msg"></div>
+    <div style="display:flex;gap:0;">
+      <button id="confirm-cancel">取消</button>
+      <button id="confirm-ok">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 圖片放大 -->
+<div id="img-viewer" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;" onclick="closeImgViewer()">
+  <img id="img-viewer-src" src="" alt="放大圖" style="max-width:92vw;max-height:88dvh;object-fit:contain;pointer-events:none;">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE = 'pikbloom_items_v1';
+const CATS = ['菇點','花點','隱藏水果片'];
+const CAT_INFO = {
+  菇點:       { emoji:'🍄', hdr:'section-hdr-mush',   title:'section-title-mush',   chipCls:'selected-mush' },
+  花點:       { emoji:'🌸', hdr:'section-hdr-flower', title:'section-title-flower', chipCls:'selected-flower' },
+  隱藏水果片: { emoji:'🍎', hdr:'section-hdr-fruit',  title:'section-title-fruit',  chipCls:'selected-fruit' },
+};
+
+let items = [];
+let editId = null, tempImg = null, activeCat = '全部', geoTimer = null;
+let selectedCat = '菇點';
+
+function openImgViewer(src) {
+  const viewer = document.getElementById('img-viewer');
+  document.getElementById('img-viewer-src').src = src;
+  viewer.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeImgViewer() {
+  document.getElementById('img-viewer').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function load() {
+  try { items = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { items = []; }
+  document.getElementById('loading').style.display = 'none';
+  render();
+}
+
+function save() {
+  try {
+    const toStore = items.map(it => {
+      const s = { ...it };
+      if (s.img && s.img.startsWith('data:')) delete s.img;
+      return s;
+    });
+    localStorage.setItem(STORE, JSON.stringify(toStore));
+  } catch(e) { console.warn('localStorage 寫入失敗：', e.message); }
+}
+
+function selectCat(el) {
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('selected-mush','selected-flower','selected-fruit'));
+  selectedCat = el.dataset.val;
+  el.classList.add(CAT_INFO[selectedCat].chipCls);
+}
+
+function setChipValue(val) {
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    c.classList.remove('selected-mush','selected-flower','selected-fruit');
+    if (c.dataset.val === val) c.classList.add(CAT_INFO[val].chipCls);
+  });
+  selectedCat = val;
+}
+
+function parseCoord(s) {
+  const m = s.trim().match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+  return m ? { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } : null;
+}
+function onCoordInput() {
+  clearTimeout(geoTimer);
+  if (parseCoord(document.getElementById('f-coord').value)) geoTimer = setTimeout(geoLookup, 900);
+}
+async function geoLookup() {
+  const v = document.getElementById('f-coord').value;
+  const p = parseCoord(v);
+  const pill = document.getElementById('geo-pill');
+  if (!p) { pill.className='geo-pill geo-err'; pill.style.display='block'; pill.textContent='格式錯誤'; return; }
+  pill.className='geo-pill geo-loading'; pill.style.display='block'; pill.textContent='辨識中…';
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.lat}&lon=${p.lng}&format=json&accept-language=zh-TW`);
+    const d = await r.json();
+    const a = d.address || {};
+    const country = a.country || '未知';
+    const city = a.city || a.town || a.county || a.state || '';
+    document.getElementById('f-country').value = country;
+    pill.className='geo-pill geo-ok';
+    pill.textContent = '→ ' + (city ? country + ' / ' + city : country);
+  } catch(e) { pill.className='geo-pill geo-err'; pill.textContent='無法取得，請手動輸入'; }
+}
+
+function render() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const filtered = items.filter(it => {
+    const mc = activeCat === '全部' || it.cat === activeCat;
+    const mq = !q || (it.coord||'').includes(q) || (it.country||'').toLowerCase().includes(q) ||
+      (it.tags||[]).some(t => t.toLowerCase().includes(q.replace(/^#/,'')));
+    return mc && mq;
+  });
+
+  const sm = { 菇點:'mush', 花點:'flower', 隱藏水果片:'fruit' };
+  CATS.forEach(c => document.getElementById('s-'+sm[c]).textContent = items.filter(i=>i.cat===c).length);
+
+  const list = document.getElementById('list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state">${items.length?'No results found':'No collections yet'}</div>`;
+    return;
+  }
+
+  const show = activeCat === '全部' ? CATS : [activeCat];
+  list.innerHTML = show.map(cat => {
+    const ci = filtered.filter(i => i.cat === cat);
+    if (!ci.length) return '';
+    const info = CAT_INFO[cat];
+    const countries = [...new Set(ci.map(i => i.country||'未分類'))].sort((a,b)=>a==='未分類'?1:b==='未分類'?-1:a.localeCompare(b,'zh'));
+    const body = countries.map(cn => {
+      const gi = ci.filter(i=>(i.country||'未分類')===cn);
+      const cards = gi.map(it => {
+        const tags = (it.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join(' ');
+        const imgEl = it.img ? `<img src="${it.img}" alt="收藏圖片" loading="lazy" class="zoomable">` : `<span>${info.emoji}</span>`;
+        const coord = it.coord ? `<div class="card-coord" data-coord="${it.coord}">${it.coord.replace(/,\s+/g, ',')}</div>` : '';
+        return `<div class="card" data-id="${it.id}">
+          <div class="card-img">${imgEl}</div>
+          <div class="card-body">${coord}<div class="card-tags">${tags}</div></div>
+          <div class="card-actions">
+            <button class="icon-btn" aria-label="編輯" data-action="edit">✍🏻</button>
+            <button class="icon-btn" aria-label="刪除" data-action="del">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="country-group">
+        <div class="country-lbl" onclick="toggleCountry(this)" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;"><span>${cn} (${gi.length})</span><span class="country-chevron">－</span></div>
+        <div class="country-body" style="width:100%;overflow:hidden;"><div class="cards">${cards}</div></div>
+      </div>`;
+    }).join('');
+    return `<div class="section">
+      <div class="${info.hdr} section-hdr" onclick="toggleSec(this)">
+        <div class="section-title">${cat} <span class="section-count">(${ci.length})</span></div>
+        <span class="chevron"></span>
+      </div>
+      <div class="section-body" style="overflow:hidden;width:100%;">${body}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSec(h) {
+  const b = h.nextElementSibling, c = h.querySelector('.chevron');
+  if (b.style.display === 'none') { b.style.display = ''; c.classList.remove('collapsed'); }
+  else { b.style.display = 'none'; c.classList.add('collapsed'); }
+}
+
+function toggleCountry(lbl) {
+  const body = lbl.nextElementSibling;
+  const chevron = lbl.querySelector('.country-chevron');
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    if (chevron) chevron.textContent = '－';
+  } else {
+    body.style.display = 'none';
+    if (chevron) chevron.textContent = '+';
+  }
+}
+
+function setCat(el) {
+  document.querySelectorAll('.cat-tab').forEach(b => { b.className = 'cat-tab'; });
+  activeCat = el.dataset.cat;
+  const cls = activeCat === '全部' ? 'active-all' : activeCat === '菇點' ? 'active-mush' : activeCat === '花點' ? 'active-flower' : 'active-fruit';
+  el.classList.add(cls);
+  render();
+}
+
+function openAdd() {
+  editId = null; tempImg = null;
+  document.getElementById('sheet-title').textContent = '新增收藏';
+  ['f-coord','f-tags','f-country'].forEach(id => document.getElementById(id).value = '');
+  setChipValue('菇點');
+  document.getElementById('preview').style.display = 'none';
+  document.getElementById('upload-zone').style.display = '';
+  document.getElementById('change-img-btn').style.display = 'none';
+  document.getElementById('file-in').value = '';
+  const p = document.getElementById('geo-pill'); p.style.display='none'; p.textContent='';
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openEdit(id) {
+  const it = items.find(i=>i.id===id); if (!it) return;
+  editId = id; tempImg = it.img || null;
+  document.getElementById('sheet-title').textContent = '編輯收藏';
+  setChipValue(it.cat);
+  document.getElementById('f-country').value = it.country || '';
+  document.getElementById('f-coord').value = it.coord || '';
+  document.getElementById('f-tags').value = (it.tags||[]).join(' ');
+  const pill = document.getElementById('geo-pill');
+  if (it.country) { pill.className='geo-pill geo-ok'; pill.style.display='block'; pill.textContent='→ '+it.country; }
+  else { pill.style.display='none'; }
+  const prev = document.getElementById('preview');
+  if (it.img) { prev.src=it.img; prev.style.display='block'; document.getElementById('upload-zone').style.display='none'; document.getElementById('change-img-btn').style.display='block'; }
+  else { prev.style.display='none'; document.getElementById('upload-zone').style.display=''; document.getElementById('change-img-btn').style.display='none'; }
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() { document.getElementById('sheet-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function overlayClick(e) { if (e.target === document.getElementById('sheet-overlay')) closeSheet(); }
+
+function handleImg(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    tempImg = ev.target.result;
+    const prev = document.getElementById('preview');
+    prev.src = tempImg; prev.style.display = 'block';
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('change-img-btn').style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+}
+
+function saveItem() {
+  const obj = {
+    id: editId || Date.now().toString(),
+    cat: selectedCat,
+    country: document.getElementById('f-country').value.trim() || '未分類',
+    coord: document.getElementById('f-coord').value.trim(),
+    tags: (document.getElementById('f-tags').value.trim()).split(/\s+/).map(t=>t.replace(/^#/,'')).filter(Boolean),
+    img: tempImg
+  };
+  if (editId) { const i = items.findIndex(x=>x.id===editId); if (i>=0) items[i] = obj; }
+  else items.unshift(obj);
+  dirtyIds.add(obj.id);
+  save(); render(); closeSheet();
+  updateSyncBtn();
+  // 自動展開對應分類與國家
+  setTimeout(() => {
+    // 展開分類 section
+    const sections = document.querySelectorAll('.section-hdr');
+    sections.forEach(hdr => {
+      const titleEl = hdr.querySelector('.section-title');
+      if (titleEl && titleEl.textContent.includes(obj.cat)) {
+        const body = hdr.nextElementSibling;
+        const chevron = hdr.querySelector('.chevron');
+        if (body && body.style.display === 'none') {
+          body.style.display = '';
+          if (chevron) chevron.classList.remove('collapsed');
+        }
+        // 展開國家
+        const countryLbls = body ? body.querySelectorAll('.country-lbl') : [];
+        countryLbls.forEach(lbl => {
+          if (lbl.textContent.includes(obj.country)) {
+            const countryBody = lbl.nextElementSibling;
+            const chevronC = lbl.querySelector('.country-chevron');
+            if (countryBody && countryBody.style.display === 'none') {
+              countryBody.style.display = '';
+              if (chevronC) chevronC.textContent = '－';
+            }
+          }
+        });
+      }
+    });
+  }, 50);
+  showToast(editId ? 'Updated ✓' : 'Added ✓');
+}
+
+function del(id) {
+  showConfirm('確定刪除這筆收藏？', async () => {
+    items = items.filter(i=>i.id!==id);
+    save(); render();
+    if (accessToken) {
+      try {
+        if (!rootFolderId) await ensureFolders();
+        const allFolderIds = [rootFolderId, ...Object.values(catFolderIds)].filter(Boolean);
+        for (const fid of allFolderIds) {
+          const q = `name contains '${id}' and '${fid}' in parents and trashed=false`;
+          const old = await gapi('GET', `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`);
+          if (old.files) { for (const f of old.files) { if (f.name.startsWith(id + '.')) await gapi('DELETE', `https://www.googleapis.com/drive/v3/files/${f.id}`); } }
+        }
+        const syncItems = items.map(it => ({ ...it }));
+        await saveDataJson(syncItems);
+        showToast('Deleted & synced ✓');
+      } catch(e) { showToast('Deleted (sync failed)'); }
+    } else { showToast('Deleted ✓'); }
+  });
+}
+
+function showConfirm(msg, onOk) {
+  const overlay = document.getElementById('confirm-overlay');
+  document.getElementById('confirm-msg').textContent = msg;
+  overlay.style.display = 'flex';
+  document.getElementById('confirm-ok').onclick = () => { overlay.style.display = 'none'; onOk(); };
+  document.getElementById('confirm-cancel').onclick = () => { overlay.style.display = 'none'; };
+}
+
+function copyCoord(c) {
+  navigator.clipboard.writeText(c).catch(() => {
+    const t = document.createElement('textarea'); t.value = c;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+  });
+  showToast('Copied ✓');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.display='none', 2200);
+}
+
+document.getElementById('list').addEventListener('click', function(e) {
+  const card = e.target.closest('.card'); if (!card) return;
+  const id = card.dataset.id;
+  const coord = e.target.closest('.card-coord');
+  if (coord) { copyCoord(coord.dataset.coord); return; }
+  const btn = e.target.closest('[data-action]');
+  if (btn) { if (btn.dataset.action === 'edit') openEdit(id); if (btn.dataset.action === 'del') del(id); return; }
+  const img = e.target.closest('.zoomable');
+  if (img) openImgViewer(img.src);
+});
+
+load();
+</script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+const CLIENT_ID = '732074232053-o6tubip4kqh5qdulfkfc4m6o3i3ttstr.apps.googleusercontent.com';
+const SCOPES = ['https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/drive.metadata.readonly'].join(' ');
+const ROOT_FOLDER_NAME = 'PikminBloom Box';
+const CAT_FOLDERS = {'菇點':'菇點','花點':'花點','隱藏水果片':'隱藏水果片'};
+const DATA_FILE_NAME = 'data.json';
+
+let accessToken = null, tokenClient = null, rootFolderId = null;
+let catFolderIds = {}, driveDataFileId = null, isSyncing = false;
+let dirtyIds = new Set();
+
+function initDrive() {
+  if (!window.google) { setTimeout(initDrive, 300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: onTokenReceived });
+  const saved = localStorage.getItem('pikbloom_access_token');
+  const exp = parseInt(localStorage.getItem('pikbloom_token_exp') || '0');
+  if (saved && Date.now() < exp) {
+    accessToken = saved; setDriveUI('connected');
+    ensureFolders().then(() => driveLoad());
+  } else {
+    items = items.map(it => { if (it.img && it.img.startsWith('https://drive.google.com')) return { ...it, img: null }; return it; });
+    render();
+    setDriveUI('disconnected');
+  }
+}
+
+async function onTokenReceived(resp) {
+  if (resp.error) { showToast('Login failed: ' + resp.error); return; }
+  accessToken = resp.access_token;
+  localStorage.setItem('pikbloom_access_token', accessToken);
+  localStorage.setItem('pikbloom_token_exp', Date.now() + 50 * 60 * 1000);
+  setDriveUI('connected'); showToast('Connected to Drive');
+  await ensureFolders(); await driveLoad();
+}
+
+function driveLogin() {
+  if (!tokenClient) { showToast('Loading...'); setTimeout(initDrive, 500); return; }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function driveSignout() {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken);
+  accessToken = null; rootFolderId = null; catFolderIds = {}; driveDataFileId = null;
+  localStorage.removeItem('pikbloom_access_token'); localStorage.removeItem('pikbloom_token_exp');
+  try { items = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { items = []; }
+  render(); setDriveUI('disconnected'); showToast('Disconnected');
+}
+
+function setDriveUI(state) {
+  const icon = document.getElementById('drive-status-icon');
+  const text = document.getElementById('drive-status-text');
+  const btnSync = document.getElementById('btn-sync');
+  const btnTopbarLogin = document.getElementById('btn-topbar-login');
+  const btnTopbarSignout = document.getElementById('btn-topbar-signout');
+  const hint = document.getElementById('drive-hint');
+  const hintDisconnected = document.getElementById('drive-hint-disconnected');
+  if (state === 'connected') {
+    icon.textContent = '●'; icon.style.color = '#4FCC4D';
+    text.textContent = 'Google Drive Connected';
+    btnSync.style.display = '';
+    btnTopbarLogin.style.display = 'none'; btnTopbarSignout.style.display = '';
+    if (hint) hint.style.display = '';
+    if (hintDisconnected) hintDisconnected.style.display = 'none';
+  } else if (state === 'syncing') {
+    icon.textContent = '○'; icon.style.color = ''; text.textContent = 'Syncing...';
+  } else {
+    icon.textContent = '○'; icon.style.color = '';
+    text.textContent = '未連線 Google Drive';
+    btnSync.style.display = 'none';
+    btnTopbarLogin.style.display = ''; btnTopbarSignout.style.display = 'none';
+    if (hint) hint.style.display = 'none';
+    if (hintDisconnected) hintDisconnected.style.display = '';
+  }
+}
+
+async function gapi(method, url, body, isUpload) {
+  const headers = { Authorization: 'Bearer ' + accessToken };
+  if (body && !isUpload) headers['Content-Type'] = 'application/json';
+  const res = await fetch(url, { method, headers, body: body ? (isUpload ? body : JSON.stringify(body)) : undefined });
+  if (!res.ok) throw new Error(await res.text());
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('application/json') ? res.json() : res.text();
+}
+
+async function findFolder(name, parentId) {
+  let q = `mimeType='application/vnd.google-apps.folder' and name='${name}' and trashed=false`;
+  if (parentId) q += ` and '${parentId}' in parents`;
+  const res = await gapi('GET', `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`);
+  return res.files && res.files.length > 0 ? res.files[0].id : null;
+}
+
+async function createFolder(name, parentId) {
+  const body = { name, mimeType: 'application/vnd.google-apps.folder' };
+  if (parentId) body.parents = [parentId];
+  const res = await gapi('POST', 'https://www.googleapis.com/drive/v3/files', body);
+  return res.id;
+}
+
+async function getOrCreateFolder(name, parentId) {
+  return (await findFolder(name, parentId)) || (await createFolder(name, parentId));
+}
+
+async function ensureFolders() {
+  rootFolderId = await getOrCreateFolder(ROOT_FOLDER_NAME, null);
+  for (const cat of Object.keys(CAT_FOLDERS)) catFolderIds[cat] = await getOrCreateFolder(cat, rootFolderId);
+}
+
+async function uploadImage(base64, itemId, cat) {
+  const arr = base64.split(','); const mime = arr[0].match(/:(.*?);/)[1]; const ext = mime.split('/')[1];
+  const byteStr = atob(arr[1]); const u8 = new Uint8Array(byteStr.length);
+  for (let i = 0; i < byteStr.length; i++) u8[i] = byteStr.charCodeAt(i);
+  const blob = new Blob([u8], { type: mime });
+  const folderId = catFolderIds[cat] || rootFolderId;
+  const fileName = itemId + '.' + ext;
+  const allFolderIds = [rootFolderId, ...Object.values(catFolderIds)].filter(Boolean);
+  for (const fid of allFolderIds) {
+    const qAll = `name contains '${itemId}' and '${fid}' in parents and trashed=false`;
+    const allOld = await gapi('GET', `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(qAll)}&fields=files(id,name)`);
+    if (allOld.files && allOld.files.length > 0) {
+      for (const f of allOld.files) { if (f.name.startsWith(itemId + '.')) await gapi('DELETE', `https://www.googleapis.com/drive/v3/files/${f.id}`); }
+    }
+  }
+  const meta = JSON.stringify({ name: fileName, parents: [folderId] });
+  const boundary = 'pikmin_boundary';
+  const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`;
+  const bodyEnd = `\r\n--${boundary}--`;
+  const bodyArr = new Uint8Array([...new TextEncoder().encode(body), ...u8, ...new TextEncoder().encode(bodyEnd)]);
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': `multipart/related; boundary=${boundary}` }, body: bodyArr
+  });
+  const f = await res.json(); return f.id;
+}
+
+async function findDataFile() {
+  if (!rootFolderId) return null;
+  const q = `name='${DATA_FILE_NAME}' and '${rootFolderId}' in parents and trashed=false`;
+  const res = await gapi('GET', `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+  return res.files && res.files.length > 0 ? res.files[0].id : null;
+}
+
+async function saveDataJson(data) {
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  if (!driveDataFileId) driveDataFileId = await findDataFile();
+  if (driveDataFileId) {
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveDataFileId}?uploadType=media`, {
+      method: 'PATCH', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' }, body: blob
+    });
+  } else {
+    const meta = JSON.stringify({ name: DATA_FILE_NAME, parents: [rootFolderId] });
+    const boundary = 'pikmin_boundary';
+    const bodyStr = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n--${boundary}--`;
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': `multipart/related; boundary=${boundary}` }, body: bodyStr
+    });
+    const f = await res.json(); driveDataFileId = f.id;
+  }
+}
+
+async function driveLoad() {
+  try {
+    driveDataFileId = await findDataFile();
+    if (!driveDataFileId) { showToast('No Drive data — starting fresh'); return; }
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveDataFileId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      items = data.map(it => ({ ...it, img: null })); render(); showToast('Loading images...');
+      for (let i = 0; i < data.length; i++) {
+        const it = data[i];
+        if (it.driveImgId) {
+          try {
+            const imgRes = await fetch(`https://www.googleapis.com/drive/v3/files/${it.driveImgId}?alt=media`, { headers: { Authorization: 'Bearer ' + accessToken } });
+            const blob = await imgRes.blob();
+            const b64 = await new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(blob); });
+            items[i] = { ...items[i], img: b64 }; render();
+          } catch(e) {}
+        }
+      }
+      dirtyIds.clear(); showToast(`Loaded ${items.length} items ✓`); setDriveUI('connected');
+    }
+  } catch(e) { showToast('Load failed: ' + e.message); setDriveUI('connected'); }
+}
+
+async function driveSync() {
+  if (!accessToken || isSyncing) return;
+  if (dirtyIds.size === 0) { showToast('Nothing to sync'); return; }
+  isSyncing = true; setDriveUI('syncing');
+  try {
+    if (!rootFolderId) await ensureFolders();
+    const changed = [...dirtyIds].filter(d => !d.startsWith('del:'));
+    for (const id of changed) {
+      const it = items.find(i => i.id === id);
+      if (!it || !it.img || !it.img.startsWith('data:')) continue;
+      try {
+        const fileId = await uploadImage(it.img, it.id, it.cat);
+        const idx = items.findIndex(i => i.id === id);
+        if (idx >= 0) items[idx] = { ...items[idx], driveImgId: fileId };
+      } catch(e) {}
+    }
+    await saveDataJson(items.map(it => ({ ...it })));
+    dirtyIds.clear(); showToast(`Synced ✓ (${changed.length} items)`);
+  } catch(e) { showToast('Sync failed: ' + e.message); }
+  finally { isSyncing = false; setDriveUI('connected'); }
+}
+
+async function manualSync() { await driveSync(); }
+
+function updateSyncBtn() {
+  if (!accessToken) return;
+  const btn = document.getElementById('btn-sync');
+  if (btn) btn.textContent = dirtyIds.size > 0 ? `同步更新 (${dirtyIds.size})` : '同步更新';
+}
+
+window.addEventListener('load', initDrive);
+</script>
+</body>
+</html>
