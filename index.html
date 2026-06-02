@@ -993,7 +993,7 @@ function initDrive() {
   if (saved && Date.now() < exp) {
     accessToken = saved; setDriveUI('connected');
     showDriveLoading('連線 Google Drive 中...');
-    ensureFolders().then(() => driveLoad());
+    ensureFolders().then(() => { driveLoad(); startAutoSync(); });
     scheduleTokenRefresh();
   } else {
     items = items.map(it => { if (it.img && it.img.startsWith('https://drive.google.com')) return { ...it, img: null }; return it; });
@@ -1016,6 +1016,7 @@ async function onTokenReceived(resp) {
     isFirstLogin = false;
     setDriveUI('connected'); showToast('Connected to Drive');
     await ensureFolders(); await driveLoad();
+    startAutoSync();
   } else {
     // 靜默續期，只更新 token 不重載資料
     setDriveUI('connected');
@@ -1034,7 +1035,7 @@ function driveSignout() {
   localStorage.removeItem('pikbloom_token_exp');
   localStorage.removeItem('pikbloom_folder_cache');
   localStorage.removeItem(STORE); // 清除本地資料，避免前帳號資料殘留
-  clearTimeout(refreshTimer);
+  clearTimeout(refreshTimer); stopAutoSync();
   items = []; // 清空記憶體
   isFirstLogin = true;
   render(); setDriveUI('disconnected'); showToast('Disconnected');
@@ -1277,10 +1278,26 @@ async function driveSync() {
 
 async function manualSync() { await driveSync(); }
 
+// 自動同步：每 60 秒檢查一次，有變動才同步
+let autoSyncTimer = null;
+
+function startAutoSync() {
+  stopAutoSync();
+  autoSyncTimer = setInterval(async () => {
+    if (accessToken && dirtyIds.size > 0 && !isSyncing) {
+      await driveSync();
+    }
+  }, 60 * 1000);
+}
+
+function stopAutoSync() {
+  if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
+}
+
 let refreshTimer = null;
 
 function scheduleTokenRefresh() {
-  clearTimeout(refreshTimer);
+  clearTimeout(refreshTimer); stopAutoSync();
   const exp = parseInt(localStorage.getItem('pikbloom_token_exp') || '0');
   const remaining = exp - Date.now() - 3 * 60 * 1000; // 到期前 3 分鐘提示
   if (remaining <= 0) { promptRelogin(); return; }
