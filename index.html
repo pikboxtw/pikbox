@@ -846,13 +846,34 @@ function handleImg(e) {
   const f = e.target.files[0]; if (!f) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    tempImg = ev.target.result;
-    const prev = document.getElementById('preview');
-    prev.src = tempImg; prev.style.display = 'block';
-    document.getElementById('upload-zone').style.display = 'none';
-    document.getElementById('change-img-btn').style.display = 'block';
+    // 壓縮圖片
+    compressImage(ev.target.result, 1200, 0.75).then(compressed => {
+      tempImg = compressed;
+      const prev = document.getElementById('preview');
+      prev.src = tempImg; prev.style.display = 'block';
+      document.getElementById('upload-zone').style.display = 'none';
+      document.getElementById('change-img-btn').style.display = 'block';
+    });
   };
   reader.readAsDataURL(f);
+}
+
+function compressImage(base64, maxSize, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = base64;
+  });
 }
 
 function saveItem() {
