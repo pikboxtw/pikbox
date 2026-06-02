@@ -1046,8 +1046,13 @@ function driveLogin() {
 function driveSignout() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken);
   accessToken = null; rootFolderId = null; catFolderIds = {}; driveDataFileId = null;
-  localStorage.removeItem('pikbloom_access_token'); localStorage.removeItem('pikbloom_token_exp'); localStorage.removeItem('pikbloom_folder_cache'); clearTimeout(refreshTimer);
-  try { items = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { items = []; }
+  localStorage.removeItem('pikbloom_access_token');
+  localStorage.removeItem('pikbloom_token_exp');
+  localStorage.removeItem('pikbloom_folder_cache');
+  localStorage.removeItem(STORE); // 清除本地資料，避免前帳號資料殘留
+  clearTimeout(refreshTimer);
+  items = []; // 清空記憶體
+  isFirstLogin = true;
   render(); setDriveUI('disconnected'); showToast('Disconnected');
 }
 
