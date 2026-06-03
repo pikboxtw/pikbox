@@ -733,33 +733,26 @@ function render() {
     const ci = filtered.filter(i => i.cat === cat);
     if (!ci.length) return '';
     const info = CAT_INFO[cat];
-    const countries = [...new Set(ci.map(i => i.country||'未分類'))].sort((a,b)=>a==='未分類'?1:b==='未分類'?-1:a.localeCompare(b,'zh'));
-    const body = countries.map(cn => {
-      const gi = ci.filter(i=>(i.country||'未分類')===cn);
-      const cards = gi.map(it => {
-        const tags = (it.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join(' ');
-        const imgEl = it.img ? `<img src="${it.img}" alt="收藏圖片" loading="lazy" class="zoomable">` : `<span>${info.emoji}</span>`;
-        const coord = it.coord ? `<div class="card-coord" data-coord="${it.coord}">${it.coord.replace(/,\s+/g, ',')}</div>` : '';
-        return `<div class="card" data-id="${it.id}">
-          <div class="card-img">${imgEl}</div>
-          <div class="card-body">${coord}<div class="card-tags">${tags}</div></div>
-          <div class="card-actions">
-            <button class="icon-btn" aria-label="編輯" data-action="edit">✍🏻</button>
-            <button class="icon-btn" aria-label="刪除" data-action="del">🗑️</button>
-          </div>
-        </div>`;
-      }).join('');
-      return `<div class="country-group">
-        <div class="country-lbl" onclick="toggleCountry(this)" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;"><span>${cn} (${gi.length})</span><span class="country-chevron">－</span></div>
-        <div class="country-body" style="width:100%;overflow:hidden;"><div class="cards">${cards}</div></div>
+    const cards_html = ci.map(it => {
+      const tags = (it.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join(' ');
+      const imgEl = it.img ? `<img src="${it.img}" alt="收藏圖片" loading="lazy" class="zoomable">` : `<span>${info.emoji}</span>`;
+      const coord = it.coord ? `<div class="card-coord" data-coord="${it.coord}">${it.coord.replace(/,\s+/g, ',')}</div>` : '';
+      return `<div class="card" data-id="${it.id}">
+        <div class="card-img">${imgEl}</div>
+        <div class="card-body">${coord}<div class="card-tags">${tags}</div></div>
+        <div class="card-actions">
+          <button class="icon-btn" aria-label="編輯" data-action="edit">✍🏻</button>
+          <button class="icon-btn" aria-label="刪除" data-action="del">🗑️</button>
+        </div>
       </div>`;
     }).join('');
+    const body = `<div class="cards">${cards_html}</div>`;
     return `<div class="section">
       <div class="${info.hdr} section-hdr" onclick="toggleSec(this)">
         <div class="section-title">${cat} <span class="section-count">(${ci.length})</span></div>
         <span class="chevron"></span>
       </div>
-      <div class="section-body" style="overflow:hidden;width:100%;">${body}</div>
+      <div class="section-body" style="overflow:hidden;width:100%;padding:12px 0;">${body}</div>
     </div>`;
   }).join('');
 }
