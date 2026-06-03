@@ -1211,9 +1211,10 @@ async function driveLoad() {
               loaded++;
               showDriveLoading(`載入圖片中 ${loaded} / ${withImg}`);
               // 更新單張卡片圖片，加 loaded class 觸發透明度動畫
-              const cards = document.querySelectorAll('.card');
-              if (cards[idx]) {
-                const imgEl = cards[idx].querySelector('.card-img');
+              // 用 data-id 精確找到對應卡片，避免順序錯亂
+              const card = document.querySelector(`.card[data-id="${it.id}"]`);
+              if (card) {
+                const imgEl = card.querySelector('.card-img');
                 if (imgEl) {
                   const newImg = document.createElement('img');
                   newImg.src = b64;
@@ -1227,10 +1228,9 @@ async function driveLoad() {
                 }
               }
             } catch(e) {
-              // 載入失敗，移除 loading 狀態
-              const cards = document.querySelectorAll('.card');
-              if (cards[idx]) {
-                const imgEl = cards[idx].querySelector('.card-img');
+              const card = document.querySelector(`.card[data-id="${it.id}"]`);
+              if (card) {
+                const imgEl = card.querySelector('.card-img');
                 if (imgEl) imgEl.classList.remove('loading-img');
               }
             }
